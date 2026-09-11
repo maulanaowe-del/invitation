@@ -597,7 +597,7 @@
             };
 
             try {
-                if(CONFIG.api.url === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") throw new Error("API URL Not Configured");
+                if(CONFIG.api.url === "https://script.google.com/macros/s/AKfycbwUk44QWX299A7_HFnl1X5dcmayZnZmEk2vfne3NqnKUAeB1scIvGktc5SGKfGJfJFwTg/exec") throw new Error("API URL Not Configured");
                 
                 // Using x-www-form-urlencoded to avoid CORS Preflight issues in GAS
                 const response = await fetch(CONFIG.api.url, {
@@ -683,7 +683,7 @@
             tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center"><div class="loader border-darkgreen"></div></td></tr>';
 
             try {
-                if(CONFIG.api.url === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") throw new Error("API not set");
+                if(CONFIG.api.url === "https://script.google.com/macros/s/AKfycbwUk44QWX299A7_HFnl1X5dcmayZnZmEk2vfne3NqnKUAeB1scIvGktc5SGKfGJfJFwTg/exec") throw new Error("API not set");
                 const response = await fetch(`${CONFIG.api.url}?action=getAdminData&secret=${adminToken}`);
                 const result = await response.json();
                 
