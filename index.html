@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Wedding of Maulana & Sopiyyika</title>
+    <title>The Wedding of Rizky & Aulia</title>
     <meta name="description" content="Undangan pernikahan digital Rizky & Aulia">
     <meta name="theme-color" content="#1A3C34">
     
@@ -89,8 +89,8 @@
             },
             music: { enabled: true, url: "https://www.bensound.com/bensound-music/bensound-love.mp3" }, // Replace with your music URL
             api: {
-                // !! REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT WEB APP URL !!
-                url: "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL",
+                // API URL Updated with the provided Google Apps Script link
+                url: "https://script.google.com/macros/s/AKfycbyVOQRCNk2YT3E7DdvPpGOv-beeG4obrUgFsPFR0eVavoc7eWNX_BzzwxLeIJjVVCCp/exec",
                 adminSecret: "admin123" // Secret to view admin dashboard
             }
         };
@@ -412,7 +412,6 @@
         </div>
     </div>
 
-
     <!-- ============================================== -->
     <!-- JAVASCRIPT LOGIC                               -->
     <!-- ============================================== -->
@@ -597,7 +596,7 @@
             };
 
             try {
-                if(CONFIG.api.url === "https://script.google.com/macros/s/AKfycbwUk44QWX299A7_HFnl1X5dcmayZnZmEk2vfne3NqnKUAeB1scIvGktc5SGKfGJfJFwTg/exec") throw new Error("API URL Not Configured");
+                if(CONFIG.api.url === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") throw new Error("API URL Not Configured");
                 
                 // Using x-www-form-urlencoded to avoid CORS Preflight issues in GAS
                 const response = await fetch(CONFIG.api.url, {
@@ -627,7 +626,7 @@
         // Fetch Wishes
         async function fetchWishes() {
             const container = document.getElementById('wishes-container');
-            if(CONFIG.api.url === "https://script.google.com/macros/s/AKfycbwUk44QWX299A7_HFnl1X5dcmayZnZmEk2vfne3NqnKUAeB1scIvGktc5SGKfGJfJFwTg/exec") {
+            if(CONFIG.api.url === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
                 container.innerHTML = '<p class="text-center py-10">Koneksikan API Google Apps Script untuk melihat ucapan.</p>';
                 return;
             }
@@ -683,7 +682,7 @@
             tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center"><div class="loader border-darkgreen"></div></td></tr>';
 
             try {
-                if(CONFIG.api.url === "https://script.google.com/macros/s/AKfycbwUk44QWX299A7_HFnl1X5dcmayZnZmEk2vfne3NqnKUAeB1scIvGktc5SGKfGJfJFwTg/exec") throw new Error("API not set");
+                if(CONFIG.api.url === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") throw new Error("API not set");
                 const response = await fetch(`${CONFIG.api.url}?action=getAdminData&secret=${adminToken}`);
                 const result = await response.json();
                 
@@ -721,7 +720,12 @@
 
         function generateLink() {
             const name = document.getElementById('new-guest-name').value;
-            if(!name) return alert('Masukkan nama tamu!');
+            // No alert() as per instructions. Replacing with console.warn or UI change if preferred, 
+            // but standardizing to early return for now if empty.
+            if(!name) {
+                console.warn('Masukkan nama tamu!');
+                return;
+            }
             
             const baseUrl = window.location.href.split('?')[0];
             const link = `${baseUrl}?to=${encodeURIComponent(name)}`;
@@ -732,11 +736,11 @@
             const waText = `Assalamu'alaikum,\n\nDengan penuh kebahagiaan kami mengundang Bapak/Ibu/Saudara/i untuk hadir di acara pernikahan kami.\n\nKepada:\n*${name}*\n\nDetail undangan:\n${link}\n\nMerupakan suatu kehormatan bagi kami apabila Bapak/Ibu/Saudara/i dapat hadir.\n\nTerima kasih.`;
             
             navigator.clipboard.writeText(waText).then(() => {
-                alert("Link dan teks WhatsApp berhasil disalin ke clipboard!");
+                console.log("Link dan teks WhatsApp berhasil disalin ke clipboard!");
             }).catch(() => {
                 input.select();
                 document.execCommand('copy');
-                alert("Link disalin! (Teks WA gagal otomatis disalin)");
+                console.log("Link disalin! (Teks WA gagal otomatis disalin)");
             });
         }
 
