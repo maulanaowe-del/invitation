@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Wedding of Rizky & Aulia</title>
+    <meta name="description" content="Undangan pernikahan digital Rizky & Aulia">
+    <meta name="theme-color" content="#1A3C34">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="https://via.placeholder.com/192/1A3C34/D4AF37?text=R&A" type="image/png">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (via CDN for single-file portability) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#D4AF37',
+                        cream: '#FDFBF7',
+                        darkgreen: '#1A3C34',
+                        softbrown: '#C4A484'
+                    },
+                    fontFamily: {
+                        serif: ['"Playfair Display"', 'serif'],
+                        sans: ['"Poppins"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Styles & Animations */
+        body { font-family: 'Poppins', sans-serif; background-color: #FDFBF7; color: #1A3C34; overflow-x: hidden; }
+        h1, h2, h3, h4, h5, h6, .font-serif { font-family: 'Playfair Display', serif; }
+        
+        .bg-pattern {
+            background-image: url('data:image/svg+xml,%3Csvg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="none" fill-rule="evenodd"%3E%3Cg fill="%23d4af37" fill-opacity="0.05"%3E%3Cpath d="M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E');
+        }
+
+        /* Opening Screen Transition */
+        #opening-screen { transition: opacity 1s ease-in-out, transform 1s ease-in-out; }
+        .hide-opening { opacity: 0; transform: translateY(-100%); pointer-events: none; }
+        
+        /* Scroll Animation Classes */
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+        
+        /* Loading Spinner */
+        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #D4AF37; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: inline-block; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Floating buttons */
+        .floating-btn { bottom: 20px; z-index: 50; transition: transform 0.2s; }
+        .floating-btn:hover { transform: scale(1.1); }
+
+        /* Lightbox */
+        #lightbox { transition: opacity 0.3s ease; }
+        
+        /* Stop scrolling when opening screen is active */
+        .no-scroll { overflow: hidden; }
+    </style>
+</head>
+<body class="no-scroll antialiased relative">
+
+    <!-- CONFIGURATION & APP LOGIC -->
+    <script>
+        const CONFIG = {
+            couple: {
+                groom: { name: "Rizky Pratama", parents: "Bapak Ahmad & Ibu Siti", instagram: "@rizkypratama" },
+                bride: { name: "Aulia Putri", parents: "Bapak Budi & Ibu Ani", instagram: "@auliaputri" }
+            },
+            event: {
+                // Countdown Target
+                date: "2026-12-20T08:00:00+07:00", 
+                akad: { date: "20 Desember 2026", time: "08:00 WIB - Selesai", venue: "Masjid Raya Banten", address: "Jl. Masjid Agung Banten, Kasemen, Kota Serang", mapsUrl: "https://maps.google.com" },
+                reception: { date: "20 Desember 2026", time: "11:00 - 14:00 WIB", venue: "Hotel Horison Ultima Ratu", address: "Jl. KH. Abdul Hadi No.66, Cipare, Kota Serang", mapsUrl: "https://maps.google.com" }
+            },
+            music: { enabled: true, url: "https://www.bensound.com/bensound-music/bensound-love.mp3" }, // Replace with your music URL
+            api: {
+                // !! REPLACE THIS WITH YOUR GOOGLE APPS SCRIPT WEB APP URL !!
+                url: "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL",
+                adminSecret: "admin123" // Secret to view admin dashboard
+            }
+        };
+
+        // State Management
+        const state = {
+            guestName: "Bapak/Ibu/Saudara/i",
+            guestToken: null,
+            isPlaying: false
+        };
+    </script>
+
+    <!-- ============================================== -->
+    <!-- 1. OPENING SCREEN                              -->
+    <!-- ============================================== -->
+    <div id="opening-screen" class="fixed inset-0 bg-darkgreen flex flex-col items-center justify-center z-[100] text-cream bg-pattern">
+        <div class="text-center px-4 reveal active">
+            <h2 class="text-sm uppercase tracking-[0.3em] mb-4 font-sans text-gold">The Wedding Of</h2>
+            <h1 class="text-5xl md:text-7xl font-serif mb-8" id="os-couple-name">Rizky & Aulia</h1>
+            <p class="text-sm mb-2 font-sans opacity-80">Kpd Yth. Bapak/Ibu/Saudara/i</p>
+            <h3 class="text-2xl md:text-3xl font-serif mb-8 text-gold font-bold" id="guest-name-display">Tamu Undangan</h3>
+            <button onclick="openInvitation()" class="bg-gold text-darkgreen px-8 py-3 rounded-full font-semibold tracking-wide hover:bg-opacity-90 transition shadow-lg flex items-center justify-center mx-auto gap-2">
+                <i class="fas fa-envelope-open"></i> Buka Undangan
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 2. MAIN INVITATION CONTENT                     -->
+    <!-- ============================================== -->
+    <div id="invitation-app" class="hidden opacity-0 transition-opacity duration-1000">
+        
+        <!-- Hero Section -->
+        <section id="hero" class="relative h-screen flex items-center justify-center text-center bg-darkgreen text-cream overflow-hidden">
+            <!-- Background Image (Replace source) -->
+            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80" alt="Prewedding" class="absolute inset-0 w-full h-full object-cover opacity-40">
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-darkgreen opacity-90"></div>
+            
+            <div class="relative z-10 px-4 reveal">
+                <h4 class="text-gold tracking-widest uppercase text-sm mb-4">Save The Date</h4>
+                <h1 class="text-6xl md:text-8xl font-serif mb-4 shadow-sm">Rizky & Aulia</h1>
+                <p class="text-xl md:text-2xl font-light mb-8">20 . 12 . 2026</p>
+                
+                <!-- Countdown -->
+                <div class="flex justify-center gap-4 text-center mt-8">
+                    <div class="bg-black/30 backdrop-blur-sm p-3 rounded-lg min-w-[70px] border border-gold/30">
+                        <span id="cd-days" class="block text-3xl font-serif text-gold">00</span>
+                        <span class="text-xs uppercase">Hari</span>
+                    </div>
+                    <div class="bg-black/30 backdrop-blur-sm p-3 rounded-lg min-w-[70px] border border-gold/30">
+                        <span id="cd-hours" class="block text-3xl font-serif text-gold">00</span>
+                        <span class="text-xs uppercase">Jam</span>
+                    </div>
+                    <div class="bg-black/30 backdrop-blur-sm p-3 rounded-lg min-w-[70px] border border-gold/30">
+                        <span id="cd-mins" class="block text-3xl font-serif text-gold">00</span>
+                        <span class="text-xs uppercase">Menit</span>
+                    </div>
+                    <div class="bg-black/30 backdrop-blur-sm p-3 rounded-lg min-w-[70px] border border-gold/30">
+                        <span id="cd-secs" class="block text-3xl font-serif text-gold">00</span>
+                        <span class="text-xs uppercase">Detik</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Surah/Quote Section -->
+        <section class="py-20 px-6 bg-cream text-center text-darkgreen bg-pattern">
+            <div class="max-w-2xl mx-auto reveal">
+                <i class="fas fa-quote-right text-3xl text-gold mb-6 opacity-50"></i>
+                <p class="italic font-serif text-lg leading-relaxed mb-4">
+                    "Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu isteri-isteri dari jenismu sendiri, supaya kamu cenderung dan merasa tenteram kepadanya, dan dijadikan-Nya diantaramu rasa kasih dan sayang."
+                </p>
+                <p class="font-semibold text-sm">(QS. Ar-Rum: 21)</p>
+            </div>
+        </section>
+
+        <!-- Couple Section -->
+        <section class="py-20 px-4 bg-white" id="couple">
+            <div class="max-w-5xl mx-auto text-center">
+                <h2 class="text-3xl font-serif text-gold mb-16 reveal">Mempelai</h2>
+                <div class="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-24">
+                    
+                    <!-- Groom -->
+                    <div class="reveal w-full md:w-1/3">
+                        <div class="w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-gold p-1 shadow-xl mb-6">
+                            <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Groom" class="w-full h-full object-cover rounded-full">
+                        </div>
+                        <h3 class="text-2xl font-serif font-bold text-darkgreen" id="groom-name">Rizky Pratama</h3>
+                        <p class="text-sm mt-2 text-gray-600">Putra dari</p>
+                        <p class="font-medium text-darkgreen mb-4" id="groom-parents">Bapak Ahmad & Ibu Siti</p>
+                        <a href="#" class="text-gold hover:text-darkgreen transition"><i class="fab fa-instagram text-xl"></i></a>
+                    </div>
+
+                    <div class="text-4xl font-serif text-gold reveal">&</div>
+
+                    <!-- Bride -->
+                    <div class="reveal w-full md:w-1/3">
+                        <div class="w-48 h-48 mx-auto rounded-full overflow-hidden border-4 border-gold p-1 shadow-xl mb-6">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80" alt="Bride" class="w-full h-full object-cover rounded-full">
+                        </div>
+                        <h3 class="text-2xl font-serif font-bold text-darkgreen" id="bride-name">Aulia Putri</h3>
+                        <p class="text-sm mt-2 text-gray-600">Putri dari</p>
+                        <p class="font-medium text-darkgreen mb-4" id="bride-parents">Bapak Budi & Ibu Ani</p>
+                        <a href="#" class="text-gold hover:text-darkgreen transition"><i class="fab fa-instagram text-xl"></i></a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Events Section -->
+        <section class="py-20 px-4 bg-darkgreen text-cream bg-pattern" id="event">
+            <div class="max-w-4xl mx-auto text-center">
+                <h2 class="text-3xl font-serif text-gold mb-12 reveal">Rangkaian Acara</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Akad Card -->
+                    <div class="bg-white/5 backdrop-blur-sm p-8 rounded-xl border border-gold/30 reveal">
+                        <i class="fas fa-ring text-4xl text-gold mb-4"></i>
+                        <h3 class="text-2xl font-serif mb-2">Akad Nikah</h3>
+                        <div class="w-16 h-[1px] bg-gold mx-auto mb-4"></div>
+                        <p class="font-semibold text-lg" id="akad-date">Minggu, 20 Desember 2026</p>
+                        <p class="mb-4 text-gray-300" id="akad-time">08:00 WIB - Selesai</p>
+                        <p class="font-medium text-gold" id="akad-venue">Masjid Raya Banten</p>
+                        <p class="text-sm text-gray-300 mb-6" id="akad-address">Jl. Masjid Agung Banten</p>
+                        <a id="akad-maps" href="#" target="_blank" class="inline-block border border-gold text-gold px-6 py-2 rounded-full hover:bg-gold hover:text-darkgreen transition text-sm">
+                            <i class="fas fa-map-marker-alt mr-2"></i>Google Maps
+                        </a>
+                    </div>
+
+                    <!-- Reception Card -->
+                    <div class="bg-white/5 backdrop-blur-sm p-8 rounded-xl border border-gold/30 reveal">
+                        <i class="fas fa-glass-cheers text-4xl text-gold mb-4"></i>
+                        <h3 class="text-2xl font-serif mb-2">Resepsi</h3>
+                        <div class="w-16 h-[1px] bg-gold mx-auto mb-4"></div>
+                        <p class="font-semibold text-lg" id="reception-date">Minggu, 20 Desember 2026</p>
+                        <p class="mb-4 text-gray-300" id="reception-time">11:00 - 14:00 WIB</p>
+                        <p class="font-medium text-gold" id="reception-venue">Hotel Horison</p>
+                        <p class="text-sm text-gray-300 mb-6" id="reception-address">Jl. KH. Abdul Hadi</p>
+                        <a id="reception-maps" href="#" target="_blank" class="inline-block border border-gold text-gold px-6 py-2 rounded-full hover:bg-gold hover:text-darkgreen transition text-sm">
+                            <i class="fas fa-map-marker-alt mr-2"></i>Google Maps
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section class="py-20 px-4 bg-cream" id="gallery">
+            <div class="max-w-6xl mx-auto">
+                <h2 class="text-3xl font-serif text-center text-darkgreen mb-12 reveal">Galeri Bahagia</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Gallery Images -->
+                    <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Gallery 1" class="w-full h-48 object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition reveal img-clickable" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1520854221256-17451cc331bf?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Gallery 2" class="w-full h-48 object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition reveal img-clickable" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Gallery 3" class="w-full h-48 object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition reveal img-clickable" loading="lazy">
+                    <img src="https://images.unsplash.com/photo-1519225421980-715cb0215aed?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" alt="Gallery 4" class="w-full h-48 object-cover rounded-lg shadow-md cursor-pointer hover:opacity-80 transition reveal img-clickable" loading="lazy">
+                </div>
+            </div>
+        </section>
+
+        <!-- RSVP Section -->
+        <section class="py-20 px-4 bg-white" id="rsvp">
+            <div class="max-w-3xl mx-auto bg-cream p-8 md:p-12 rounded-2xl shadow-lg border border-gold/20 reveal">
+                <h2 class="text-3xl font-serif text-center text-darkgreen mb-2">Konfirmasi Kehadiran</h2>
+                <p class="text-center text-sm text-gray-600 mb-8">Mohon konfirmasi kehadiran Bapak/Ibu/Saudara/i</p>
+                
+                <form id="rsvp-form" class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-darkgreen mb-1">Nama Lengkap</label>
+                        <input type="text" id="rsvp-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent outline-none bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-darkgreen mb-1">Nomor WhatsApp</label>
+                        <input type="tel" id="rsvp-wa" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent outline-none bg-white">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-darkgreen mb-1">Konfirmasi Kehadiran</label>
+                        <select id="rsvp-status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent outline-none bg-white">
+                            <option value="" disabled selected>Pilih status kehadiran...</option>
+                            <option value="Hadir">Ya, Saya akan hadir</option>
+                            <option value="Tidak Hadir">Maaf, saya tidak bisa hadir</option>
+                            <option value="Ragu">Masih ragu-ragu</option>
+                        </select>
+                    </div>
+                    <div id="guest-count-wrapper" class="hidden">
+                        <label class="block text-sm font-medium text-darkgreen mb-1">Jumlah Tamu</label>
+                        <select id="rsvp-count" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent outline-none bg-white">
+                            <option value="1">1 Orang</option>
+                            <option value="2">2 Orang</option>
+                            <option value="3">3 Orang</option>
+                            <option value="4">4 Orang</option>
+                            <option value="5">5 Orang</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-darkgreen mb-1">Ucapan & Doa</label>
+                        <textarea id="rsvp-message" rows="3" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent outline-none bg-white"></textarea>
+                    </div>
+                    <button type="submit" id="btn-submit-rsvp" class="w-full bg-darkgreen text-gold py-3 rounded-lg font-semibold hover:bg-opacity-90 transition flex justify-center items-center gap-2">
+                        <span>Kirim Konfirmasi</span>
+                    </button>
+                    <p id="rsvp-feedback" class="text-center text-sm font-medium hidden mt-2"></p>
+                </form>
+            </div>
+        </section>
+
+        <!-- Wishes / Guestbook -->
+        <section class="py-20 px-4 bg-darkgreen text-cream bg-pattern" id="wishes">
+            <div class="max-w-4xl mx-auto reveal">
+                <h2 class="text-3xl font-serif text-center text-gold mb-12">Ucapan & Doa</h2>
+                <div class="bg-white/10 backdrop-blur-sm p-6 rounded-xl h-[400px] overflow-y-auto" id="wishes-container">
+                    <div class="text-center py-10 opacity-70">
+                        <div class="loader"></div>
+                        <p class="mt-2 text-sm">Memuat ucapan...</p>
+                    </div>
+                    <!-- Wishes will be injected here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="bg-black text-white text-center py-8 text-sm">
+            <p>&copy; 2026 Rizky & Aulia. All Rights Reserved.</p>
+            <p class="opacity-50 mt-1">Made with ❤️ for PWA Wedding</p>
+        </footer>
+
+        <!-- Floating Action Buttons -->
+        <button id="music-btn" onclick="toggleMusic()" class="floating-btn fixed right-6 bg-gold text-darkgreen w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl">
+            <i class="fas fa-compact-disc animate-spin" id="music-icon"></i>
+        </button>
+        <a href="https://wa.me/?text=Halo" target="_blank" class="floating-btn fixed right-6 bottom-20 bg-green-500 text-white w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-2xl hidden">
+            <i class="fab fa-whatsapp"></i>
+        </a>
+
+        <!-- Lightbox -->
+        <div id="lightbox" class="fixed inset-0 bg-black/90 z-[200] flex items-center justify-center hidden opacity-0">
+            <button onclick="closeLightbox()" class="absolute top-6 right-6 text-white text-4xl hover:text-gold transition">&times;</button>
+            <img id="lightbox-img" src="" alt="Zoom" class="max-w-full max-h-[90vh] object-contain px-4">
+        </div>
+        
+        <audio id="bg-music" loop>
+            <source src="" type="audio/mpeg">
+        </audio>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- 3. ADMIN DASHBOARD APP (Hidden by default)     -->
+    <!-- ============================================== -->
+    <div id="admin-app" class="hidden min-h-screen bg-gray-100 p-6 text-gray-800">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h1 class="text-3xl font-serif text-darkgreen font-bold">Admin Dashboard</h1>
+                <button onclick="window.location.href='?'" class="bg-gray-300 px-4 py-2 rounded shadow hover:bg-gray-400 text-sm">Kembali ke Undangan</button>
+            </div>
+
+            <!-- Auth block -->
+            <div id="admin-auth" class="bg-white p-8 rounded-xl shadow text-center max-w-md mx-auto">
+                <h3 class="text-xl mb-4 font-semibold">Masukkan Password Admin</h3>
+                <input type="password" id="admin-pass" class="w-full border p-2 rounded mb-4" placeholder="Password">
+                <button onclick="loginAdmin()" class="bg-darkgreen text-gold px-6 py-2 rounded-lg w-full font-semibold">Login</button>
+                <p id="admin-error" class="text-red-500 text-sm mt-2 hidden">Password salah!</p>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="admin-content" class="hidden space-y-6">
+                <!-- Stats -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-blue-500">
+                        <p class="text-gray-500 text-sm">Total Undangan</p>
+                        <h3 class="text-3xl font-bold" id="stat-total">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-green-500">
+                        <p class="text-gray-500 text-sm">Hadir (Orang)</p>
+                        <h3 class="text-3xl font-bold" id="stat-hadir">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-red-500">
+                        <p class="text-gray-500 text-sm">Tidak Hadir</p>
+                        <h3 class="text-3xl font-bold" id="stat-tidak">0</h3>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow border-l-4 border-yellow-500">
+                        <p class="text-gray-500 text-sm">Ragu / Belum</p>
+                        <h3 class="text-3xl font-bold" id="stat-ragu">0</h3>
+                    </div>
+                </div>
+
+                <!-- Tools -->
+                <div class="bg-white p-6 rounded-xl shadow">
+                    <h3 class="text-lg font-semibold mb-4">Generate Link Undangan</h3>
+                    <div class="flex gap-2">
+                        <input type="text" id="new-guest-name" placeholder="Nama Tamu" class="border p-2 rounded flex-1">
+                        <button onclick="generateLink()" class="bg-darkgreen text-gold px-4 py-2 rounded font-semibold">Generate & Copy WA</button>
+                    </div>
+                    <input type="text" id="generated-link" readonly class="w-full border p-2 rounded mt-2 bg-gray-50 text-sm outline-none" onclick="this.select()">
+                </div>
+
+                <!-- Table -->
+                <div class="bg-white p-6 rounded-xl shadow overflow-x-auto">
+                    <div class="flex justify-between mb-4">
+                        <h3 class="text-lg font-semibold">Data RSVP</h3>
+                        <button onclick="fetchAdminData()" class="text-sm bg-blue-100 text-blue-700 px-3 py-1 rounded hover:bg-blue-200"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <table class="w-full text-left text-sm whitespace-nowrap">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="p-3">Waktu</th>
+                                <th class="p-3">Nama</th>
+                                <th class="p-3">WhatsApp</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3">Jumlah</th>
+                                <th class="p-3">Ucapan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-table-body" class="divide-y">
+                            <tr><td colspan="6" class="p-4 text-center">Belum ada data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================== -->
+    <!-- JAVASCRIPT LOGIC                               -->
+    <!-- ============================================== -->
+    <script>
+        // --- 1. Router & Initialization ---
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            // Check routing (Admin vs App)
+            if (urlParams.get('mode') === 'admin') {
+                document.getElementById('opening-screen').style.display = 'none';
+                document.getElementById('admin-app').classList.remove('hidden');
+                document.title = "Admin Dashboard";
+                return; // Stop app initialization
+            }
+
+            // Normal App Initialization
+            initData();
+            initObserver();
+            initCountdown();
+            initLightbox();
+            fetchWishes();
+        });
+
+        // --- 2. Data Population ---
+        function initData() {
+            // Setup Text
+            document.getElementById('groom-name').innerText = CONFIG.couple.groom.name;
+            document.getElementById('groom-parents').innerText = CONFIG.couple.groom.parents;
+            document.getElementById('bride-name').innerText = CONFIG.couple.bride.name;
+            document.getElementById('bride-parents').innerText = CONFIG.couple.bride.parents;
+            
+            document.getElementById('akad-date').innerText = CONFIG.event.akad.date;
+            document.getElementById('akad-time').innerText = CONFIG.event.akad.time;
+            document.getElementById('akad-venue').innerText = CONFIG.event.akad.venue;
+            document.getElementById('akad-address').innerText = CONFIG.event.akad.address;
+            document.getElementById('akad-maps').href = CONFIG.event.akad.mapsUrl;
+
+            document.getElementById('reception-date').innerText = CONFIG.event.reception.date;
+            document.getElementById('reception-time').innerText = CONFIG.event.reception.time;
+            document.getElementById('reception-venue').innerText = CONFIG.event.reception.venue;
+            document.getElementById('reception-address').innerText = CONFIG.event.reception.address;
+            document.getElementById('reception-maps').href = CONFIG.event.reception.mapsUrl;
+
+            // Setup Audio
+            if(CONFIG.music.enabled) {
+                document.getElementById('bg-music').src = CONFIG.music.url;
+            } else {
+                document.getElementById('music-btn').style.display = 'none';
+            }
+
+            // Handle Guest Name from URL (?to=Nama Tamu)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('to')) {
+                state.guestName = urlParams.get('to').replace(/-/g, ' ');
+                document.getElementById('guest-name-display').innerText = state.guestName;
+                document.getElementById('rsvp-name').value = state.guestName;
+            }
+        }
+
+        // --- 3. UI Interactions ---
+        function openInvitation() {
+            const os = document.getElementById('opening-screen');
+            const app = document.getElementById('invitation-app');
+            
+            os.classList.add('hide-opening');
+            document.body.classList.remove('no-scroll');
+            
+            setTimeout(() => {
+                os.style.display = 'none';
+                app.classList.remove('hidden');
+                setTimeout(() => app.classList.add('opacity-100'), 50);
+            }, 1000);
+
+            // Play music
+            if(CONFIG.music.enabled && !state.isPlaying) {
+                const audio = document.getElementById('bg-music');
+                audio.play().then(() => {
+                    state.isPlaying = true;
+                }).catch(e => console.log("Autoplay prevented"));
+            }
+        }
+
+        function toggleMusic() {
+            const audio = document.getElementById('bg-music');
+            const icon = document.getElementById('music-icon');
+            if (state.isPlaying) {
+                audio.pause();
+                icon.classList.remove('animate-spin');
+                icon.classList.replace('fa-compact-disc', 'fa-volume-mute');
+            } else {
+                audio.play();
+                icon.classList.add('animate-spin');
+                icon.classList.replace('fa-volume-mute', 'fa-compact-disc');
+            }
+            state.isPlaying = !state.isPlaying;
+        }
+
+        // Scroll Animations
+        function initObserver() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        }
+
+        // Countdown
+        function initCountdown() {
+            const targetDate = new Date(CONFIG.event.date).getTime();
+            
+            const timer = setInterval(() => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+
+                if (distance < 0) {
+                    clearInterval(timer);
+                    document.getElementById('cd-days').innerText = "00";
+                    return;
+                }
+
+                document.getElementById('cd-days').innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
+                document.getElementById('cd-hours').innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
+                document.getElementById('cd-mins').innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
+                document.getElementById('cd-secs').innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
+            }, 1000);
+        }
+
+        // Lightbox
+        function initLightbox() {
+            const images = document.querySelectorAll('.img-clickable');
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+
+            images.forEach(img => {
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.src;
+                    lightbox.classList.remove('hidden');
+                    setTimeout(() => lightbox.classList.remove('opacity-0'), 10);
+                });
+            });
+        }
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.add('opacity-0');
+            setTimeout(() => lightbox.classList.add('hidden'), 300);
+        }
+
+        // Handle RSVP Select change
+        document.getElementById('rsvp-status').addEventListener('change', function() {
+            const wrapper = document.getElementById('guest-count-wrapper');
+            if(this.value === 'Hadir') {
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+                document.getElementById('rsvp-count').value = "1";
+            }
+        });
+
+        // --- 4. API Calls (Apps Script) ---
+        
+        // RSVP Submission
+        document.getElementById('rsvp-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-submit-rsvp');
+            const feedback = document.getElementById('rsvp-feedback');
+            
+            btn.innerHTML = '<div class="loader"></div> Mengirim...';
+            btn.disabled = true;
+
+            const data = {
+                action: 'submitRSVP',
+                name: document.getElementById('rsvp-name').value,
+                wa: document.getElementById('rsvp-wa').value,
+                status: document.getElementById('rsvp-status').value,
+                count: document.getElementById('rsvp-count').value,
+                message: document.getElementById('rsvp-message').value
+            };
+
+            try {
+                if(CONFIG.api.url === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") throw new Error("API URL Not Configured");
+                
+                // Using x-www-form-urlencoded to avoid CORS Preflight issues in GAS
+                const response = await fetch(CONFIG.api.url, {
+                    method: 'POST',
+                    body: new URLSearchParams(data)
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    feedback.innerText = "Terima kasih, konfirmasi & ucapan Anda telah tersimpan.";
+                    feedback.className = "text-center text-sm font-medium mt-2 text-green-600 block";
+                    document.getElementById('rsvp-form').reset();
+                    fetchWishes(); // Refresh wishes list
+                } else {
+                    throw new Error("Server error");
+                }
+            } catch (error) {
+                feedback.innerText = "Gagal mengirim data. Pastikan API URL sudah dikonfigurasi.";
+                feedback.className = "text-center text-sm font-medium mt-2 text-red-600 block";
+                console.error(error);
+            } finally {
+                btn.innerHTML = 'Kirim Konfirmasi';
+                btn.disabled = false;
+            }
+        });
+
+        // Fetch Wishes
+        async function fetchWishes() {
+            const container = document.getElementById('wishes-container');
+            if(CONFIG.api.url === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") {
+                container.innerHTML = '<p class="text-center py-10">Koneksikan API Google Apps Script untuk melihat ucapan.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${CONFIG.api.url}?action=getWishes`);
+                const result = await response.json();
+                
+                if(result.success && result.data.length > 0) {
+                    container.innerHTML = result.data.map(wish => `
+                        <div class="bg-white/20 p-4 rounded-lg mb-4 text-left">
+                            <div class="flex justify-between items-baseline mb-2 border-b border-cream/30 pb-2">
+                                <h4 class="font-bold font-serif">${escapeHTML(wish.name)}</h4>
+                                <span class="text-xs opacity-70">${wish.date}</span>
+                            </div>
+                            <p class="text-sm font-light">${escapeHTML(wish.message)}</p>
+                            <span class="text-xs bg-gold text-darkgreen px-2 py-1 rounded mt-2 inline-block">${escapeHTML(wish.status)}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p class="text-center py-10 opacity-70">Belum ada ucapan. Jadilah yang pertama!</p>';
+                }
+            } catch (error) {
+                container.innerHTML = '<p class="text-center py-10 text-red-300">Gagal memuat data ucapan.</p>';
+            }
+        }
+
+        // Util to prevent XSS in wishes
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+            }[tag]));
+        }
+
+        // --- 5. Admin Panel Logic ---
+        let adminToken = "";
+        
+        function loginAdmin() {
+            const pass = document.getElementById('admin-pass').value;
+            if(pass === CONFIG.api.adminSecret) {
+                adminToken = pass;
+                document.getElementById('admin-auth').classList.add('hidden');
+                document.getElementById('admin-content').classList.remove('hidden');
+                fetchAdminData();
+            } else {
+                document.getElementById('admin-error').classList.remove('hidden');
+            }
+        }
+
+        async function fetchAdminData() {
+            if(!adminToken) return;
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center"><div class="loader border-darkgreen"></div></td></tr>';
+
+            try {
+                if(CONFIG.api.url === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL") throw new Error("API not set");
+                const response = await fetch(`${CONFIG.api.url}?action=getAdminData&secret=${adminToken}`);
+                const result = await response.json();
+                
+                if(result.success) {
+                    // Update stats
+                    document.getElementById('stat-total').innerText = result.stats.total;
+                    document.getElementById('stat-hadir').innerText = result.stats.hadirCount;
+                    document.getElementById('stat-tidak').innerText = result.stats.tidakHadir;
+                    document.getElementById('stat-ragu').innerText = result.stats.ragu;
+
+                    // Update Table
+                    if(result.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center">Belum ada data RSVP</td></tr>';
+                    } else {
+                        tbody.innerHTML = result.data.map(row => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3">${row.date}</td>
+                                <td class="p-3 font-semibold">${escapeHTML(row.name)}</td>
+                                <td class="p-3"><a href="https://wa.me/${row.wa.replace(/^0/, '62')}" target="_blank" class="text-green-600 hover:underline"><i class="fab fa-whatsapp"></i> ${row.wa}</a></td>
+                                <td class="p-3">
+                                    <span class="px-2 py-1 rounded text-xs ${row.status === 'Hadir' ? 'bg-green-100 text-green-800' : (row.status === 'Tidak Hadir' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800')}">
+                                        ${row.status}
+                                    </span>
+                                </td>
+                                <td class="p-3">${row.count}</td>
+                                <td class="p-3 max-w-xs truncate" title="${escapeHTML(row.message)}">${escapeHTML(row.message)}</td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center text-red-500">Gagal mengambil data dari Google Apps Script.</td></tr>';
+            }
+        }
+
+        function generateLink() {
+            const name = document.getElementById('new-guest-name').value;
+            if(!name) return alert('Masukkan nama tamu!');
+            
+            const baseUrl = window.location.href.split('?')[0];
+            const link = `${baseUrl}?to=${encodeURIComponent(name)}`;
+            const input = document.getElementById('generated-link');
+            input.value = link;
+            
+            // WA Text
+            const waText = `Assalamu'alaikum,\n\nDengan penuh kebahagiaan kami mengundang Bapak/Ibu/Saudara/i untuk hadir di acara pernikahan kami.\n\nKepada:\n*${name}*\n\nDetail undangan:\n${link}\n\nMerupakan suatu kehormatan bagi kami apabila Bapak/Ibu/Saudara/i dapat hadir.\n\nTerima kasih.`;
+            
+            navigator.clipboard.writeText(waText).then(() => {
+                alert("Link dan teks WhatsApp berhasil disalin ke clipboard!");
+            }).catch(() => {
+                input.select();
+                document.execCommand('copy');
+                alert("Link disalin! (Teks WA gagal otomatis disalin)");
+            });
+        }
+
+        // --- 6. PWA Service Worker Registration ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').then(reg => {
+                    console.log('ServiceWorker registered:', reg.scope);
+                }).catch(err => {
+                    console.log('ServiceWorker registration failed:', err);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
